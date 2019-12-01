@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.mapper.user.IUserMapper">
+    <!--映射-->
+    <resultMap id="userMap" type="userInfo">
+        <id property="id" column="id"></id>
+        <result property="userName" column="userName"></result>
+        <result property="userPwd" column="userPwd"></result>
+        <result property="insertTime" column="insertTime"></result>
+        <result property="updateTime" column="updateTime"></result>
+        <result property="userStauts" column="userStauts"></result>
+        <result property="loginTime" column="loginTime"></result>
+        <result property="loginErrorTime" column="loginErrorTime"></result>
+        <result property="loginErrorCount" column="loginErrorCount"></result>
+        <result property="loginCount" column="loginCount"></result>
+    </resultMap>
+
+    <!--登录-->
+    <select id="findUserNameList" parameterType="userInfo" resultMap="userMap">
+        select id,userName,userPwd,loginTime,userStauts,loginErrorTime,loginErrorCount,loginCount from f_user where userName=#{userName}
+    </select>
+    <!--修改用户的状态或者错误次数-->
+    <update id="updateLogin" parameterType="userInfo">
+        update f_user set
+         loginTime=#{loginTime},userStauts=#{userStauts},loginErrorTime=#{loginErrorTime},loginErrorCount=#{loginErrorCount},loginCount=#{loginCount}
+          where id=#{id}
+    </update>
+
+    <!--定时解除用户锁定  {2代表锁定的用户}-->
+    <update id="updateLoginJob" parameterType="userInfo">
+        UPDATE f_user set
+          loginErrorCount=#{loginErrorCount},userStauts=#{userStauts},loginErrorTime=null
+        WHERE loginErrorCount=>0
+    </update>
+</mapper>

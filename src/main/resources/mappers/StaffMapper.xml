@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.mapper.staff.IStaffMapper">
+    <!--映射-->
+    <resultMap id="staffMap" type="staffInfo">
+        <id property="id" column="id"></id>
+        <result property="staffName" column="staffName"></result>
+        <result property="staffSex" column="staffSex"></result>
+        <result property="insertTime" column="insertTime"></result>
+        <result property="updateTime" column="updateTime"></result>
+        <result property="imgUrl" column="imgUrl"></result>
+        <!--部门处理-->
+        <result property="sectionInfo.name" column="zreeName"></result>
+    </resultMap>
+
+    <!--条件查询-->
+    <sql id="staffWhere">
+        <where>
+            <if test="staffName !=null and staffName !=''">
+                staffName like concat('%',#{staffName},'%')
+            </if>
+            <if test="staffSex !=null">
+                and staffSex =#{staffSex}
+            </if>
+            <if test="minUpdateTime !=null and maxUpdateTime !=null">
+                and updateTime between #{minUpdateTime} and #{maxUpdateTime}
+            </if>
+            <if test="minInsertTime !=null and maxInsertTime !=null">
+                and insertTime between #{minInsertTime} and #{maxInsertTime}
+            </if>
+        </where>
+    </sql>
+
+    <!--分页查询-->
+    <select id="queryStaffList" parameterType="staffInfo" resultMap="staffMap">
+        select id,staffName,staffSex,insertTime,updateTime from f_staff
+        <include refid="staffWhere"/>
+        limit #{startPos},#{pageSize}
+    </select>
+    <!--总条数-->
+    <select id="getCount" parameterType="staffInfo" resultType="java.lang.Long">
+        select count(*) from f_staff
+        <include refid="staffWhere"/>
+    </select>
+    <!--删除员工-->
+    <delete id="deleteStaff" parameterType="java.lang.String">
+        delete from f_staff where id=#{value}
+    </delete>
+    <!--添加员工-->
+    <insert id="addStaff" parameterType="staffInfo">
+        <selectKey keyColumn="id" resultType="java.lang.String" keyProperty="id" order="BEFORE">
+            select uuid();
+        </selectKey>
+        insert into f_staff(id,staffName,staffSex,insertTime,updateTime,imgUrl,sectionId)
+        values (#{id},#{staffName},#{staffSex},#{insertTime},#{updateTime},#{imgUrl},#{sectionInfo.id})
+    </insert>
+    <!--回显-->
+    <select id="toUpdateStaff" parameterType="java.lang.String" resultMap="staffMap">
+         select s.id,staffName,staffSex,insertTime,updateTime,imgUrl,z.zreeName from f_staff s
+	LEFT JOIN e_zree z ON s.sectionId = z.id where s.id=#{value}
+    </select>
+    <!--修改-->
+    <update id="updateStaff" parameterType="staffInfo">
+        update f_staff
+          set staffName=#{staffName},staffSex=#{staffSex},updateTime=#{updateTime},insertTime=#{insertTime},imgUrl=#{imgUrl},sectionId=#{sectionInfo.id}
+        where id=#{id}
+    </update>
+
+    <!--获取所有信息-->
+    <select id="queryDataTables" resultMap="staffMap">
+        select s.id,staffName,staffSex,insertTime,updateTime,imgUrl,z.zreeName from f_staff s
+	LEFT JOIN e_zree z ON s.sectionId = z.id
+    </select>
+</mapper>
